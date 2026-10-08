@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Backend Monitor – Digital Doppelganger</title>
+  <style>
+    :root {
+      --bg: #0f172a; --card: #1e293b; --text: #e2e8f0; --muted: #94a3b8;
+      --info: #38bdf8; --warn: #fbbf24; --danger: #f87171; --success: #4ade80; --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); padding: 1.5rem; line-height: 1.5; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .subtitle { color: var(--muted); margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .card { background: var(--card); border-radius: 12px; padding: 1.25rem; border: 1px solid var(--border); }
+    .card h2 { font-size: 1rem; color: var(--muted); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .log-box { height: 320px; overflow-y: auto; font-family: ui-monospace, monospace; font-size: 0.85rem; }
+    .log-entry { padding: 0.35rem 0; border-bottom: 1px solid #1e293b; }
+    .log-entry:last-child { border-bottom: none; }
+    .INFO { color: var(--info); } .SUSPICIOUS { color: var(--warn); } .TRAPPED { color: var(--danger); font-weight: 600; }
+    .score { font-size: 1.4rem; font-weight: 700; }
+    .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+    .badge-red { background: #7f1d1d; color: #fecaca; }
+    .badge-green { background: #14532d; color: #bbf7d0; }
+    .badge-amber { background: #78350f; color: #fde68a; }
+    .badge-blue { background: #1e3a5f; color: #bfdbfe; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 500; }
+    .refresh { color: var(--muted); font-size: 0.8rem; margin-top: 1rem; }
+    .full { grid-column: 1 / -1; }
+    .case { border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+    .case:last-child { margin-bottom: 0; }
+    .case h3 { font-size: 1rem; margin-bottom: .4rem; }
+    .case .narrative { color: #cbd5e1; font-size: .9rem; margin: .6rem 0; }
+    .indicator-row { display: flex; justify-content: space-between; gap: .75rem; padding: .3rem 0; border-bottom: 1px dashed #27344a; font-size: .85rem; }
+    .indicator-row:last-child { border-bottom: none; }
+    .indicator-row .pts { color: var(--danger); font-weight: 600; white-space: nowrap; }
+    .obs-list, .rec-list { margin: .4rem 0 0 1.1rem; font-size: .85rem; color: #cbd5e1; }
+    .section-label { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; margin-top: .75rem; }
+    .pentest-block { border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+    .pentest-block:last-child { margin-bottom: 0; }
+    .pentest-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; flex-wrap: wrap; }
+    .flag-row { background: #431407 !important; }
+    .btn { background: #0f172a; color: #94a3b8; border: 1px solid var(--border); border-radius: 6px; padding: .3rem .7rem; cursor: pointer; font-size: .8rem; }
+    .btn:hover { border-color: #3b82f6; color: #e2e8f0; }
+    .muted { color: var(--muted); }
+    pre.raw { white-space: pre-wrap; font-size: .75rem; max-height: 220px; overflow-y: auto; background: #0f172a; padding: .6rem; border-radius: 6px; margin-top: .5rem; }
+    details > summary { cursor: pointer; font-size: .8rem; color: var(--muted); margin-top: .4rem; }
+  </style>
+</head>
+<body>
+  <h1>Backend Monitor</h1>
+  <p class="subtitle">Live agent decisions • Risk scores • Attacker fingerprints • Summary • Penetration</p>
+
+  <div class="grid">
+    <div class="card full">
+      <h2>Live Activity Log</h2>
+      <div class="log-box" id="log-box"><div class="muted">Waiting for events…</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Current Risk Scores</h2>
+      <div id="risk-scores">—</div>
+    </div>
+
+    <div class="card">
+      <h2>Currently Trapped</h2>
+      <div id="trapped">—</div>
+      <button class="btn" id="reset-btn" style="margin-top:.9rem;">Reset demo</button>
+    </div>
+
+    <div class="card full">
+      <h2>Collected Attacker Fingerprints</h2>
+      <div id="fingerprints">—</div>
+    </div>
+
+    <!-- Summary: why the AI flagged each actor -->
+    <div class="card full">
+      <h2>Summary — Why the agent flagged them</h2>
+      <div id="summaries"><span class="muted">No one has been flagged yet.</span></div>
+    </div>
+
+    <!-- Penetration: nmap scan of the intruder's IP -->
+    <div class="card full">
+      <h2>Penetration — Nmap scan of the intruder</h2>
+      <div id="pentest"><span class="muted">No scans yet.</span></div>
+    </div>
+  </div>
+
+  <p class="refresh">Auto-refreshes every 2 seconds</p>
+
+  <script>
+    function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    const RISKY = {21:1,22:1,23:1,135:1,139:1,445:1,1433:1,3306:1,3389:1,5432:1,5900:1,6379:1,27017:1};
+
+    function renderSummaries(summaries) {
+      const el = document.getElementById('summaries');
+      const keys = Object.keys(summaries || {});
+      if (!keys.length) { el.innerHTML = '<span class="muted">No one has been flagged yet.</span>'; return; }
+      el.innerHTML = keys.map(actor => {
+        const s = summaries[actor];
+        const indicators = s.indicators.map(i => `
+          <div class="indicator-row">
+            <span><strong>${esc(i.title)}</strong> — ${esc(i.detail)}</span>
+            <span class="pts">+${i.points}</span>
+          </div>`).join('');
+        const obs = s.observations.length ? `<div class="section-label">Also noted</div><ul class="obs-list">${s.observations.map(o => `<li>${esc(o)}</li>`).join('')}</ul>` : '';
+        const decoy = s.decoy_activity.length ? `<div class="section-label">Inside the decoy</div><ul class="obs-list">${s.decoy_activity.map(d => `<li>${esc(d.resource)} viewed ${d.count}×</li>`).join('')}</ul>` : '';
+        const recs = `<div class="section-label">Recommended next steps</div><ul class="rec-list">${s.recommendations.map(r => `<li>${esc(r)}</li>`).join('')}</ul>`;
+        return `
+          <div class="case">
+            <h3><span class="badge badge-red">TRAPPED</span> ${esc(s.headline)}</h3>
+            <p class="narrative">${esc(s.narrative)}</p>
+            <div class="section-label">Scored indicators (score ${s.score} / threshold ${s.threshold})</div>
+            ${indicators}
+            ${obs}
+            ${decoy}
+            ${recs}
+          </div>`;
+      }).join('');
+    }
+
+    function renderPentest(pentest) {
+      const el = document.getElementById('pentest');
+      const keys = Object.keys(pentest || {});
+      if (!keys.length) { el.innerHTML = '<span class="muted">No scans yet.</span>'; return; }
+      el.innerHTML = keys.map(actor => {
+        const p = pentest[actor];
+        const statusBadge = { running: '<span class="badge badge-amber">SCANNING…</span>',
+                               done: '<span class="badge badge-green">DONE</span>',
+                               error: '<span class="badge badge-red">ERROR</span>',
+                               skipped: '<span class="badge badge-blue">SKIPPED</span>' }[p.status] || '';
+        let body = '';
+        if (p.status === 'running') {
+          body = `<p class="muted" style="margin-top:.5rem;">Scanning ${esc(p.target)}… started ${esc(p.started)}.</p>`;
+        } else if (p.status === 'skipped' || p.status === 'error') {
+          body = `<p style="margin-top:.5rem;color:var(--danger)">${esc(p.error || 'Scan did not complete.')}</p>` +
+                 (p.raw_output ? `<details><summary>Raw output</summary><pre class="raw">${esc(p.raw_output)}</pre></details>` : '');
+        } else if (p.status === 'done') {
+          const flagsHtml = p.flags.length ? `<p style="margin-top:.4rem;color:var(--warn)">⚠ ${p.flags.map(esc).join(' • ')}</p>` : '';
+          const rows = p.ports.length ? `
+            <table style="margin-top:.5rem;">
+              <tr><th>Port</th><th>Proto</th><th>Service</th><th>Version</th></tr>
+              ${p.ports.map(pt => `<tr class="${RISKY[pt.port] ? 'flag-row' : ''}">
+                <td>${pt.port}</td><td>${esc(pt.protocol)}</td><td>${esc(pt.service)}</td><td>${esc(pt.version || '—')}</td></tr>`).join('')}
+            </table>` : `<p class="muted" style="margin-top:.4rem;">No open ports found in the scanned range.</p>`;
+          body = `<p style="margin-top:.5rem;">${esc(p.summary_line)}</p>${flagsHtml}${rows}
+                  <details><summary>Full nmap output</summary><pre class="raw">${esc(p.raw_output)}</pre></details>`;
+        }
+        return `
+          <div class="pentest-block">
+            <div class="pentest-head">
+              <strong>${esc(actor)}</strong> → <code>${esc(p.target)}</code> ${statusBadge}
+              <button class="btn rescan" data-actor="${esc(actor)}">Re-scan</button>
+            </div>
+            <p class="muted" style="font-size:.75rem;margin-top:.3rem;">${esc(p.command || '')}</p>
+            ${body}
+          </div>`;
+      }).join('');
+      el.querySelectorAll('.rescan').forEach(b => b.addEventListener('click', () => {
+        fetch('/api/rescan', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Doppel': '1' },
+                               body: JSON.stringify({ actor: b.dataset.actor }) });
+      }));
+    }
+
+    async function refresh() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+
+        const logBox = document.getElementById('log-box');
+        logBox.innerHTML = data.logs.length ? data.logs.map(e => `
+            <div class="log-entry ${e.risk_level}">
+              [${esc(e.timestamp)}] <strong>${esc(e.actor)}</strong> → ${esc(e.action)}
+              <span class="muted"> ${esc(e.target)}</span>
+            </div>`).join('') : '<div class="muted">No activity yet</div>';
+
+        const scores = data.risk_scores;
+        document.getElementById('risk-scores').innerHTML = Object.keys(scores).length
+          ? Object.entries(scores).map(([actor, score]) => `
+              <div style="margin-bottom:0.6rem">
+                <strong>${esc(actor)}</strong>
+                <span class="score" style="color:${score >= 70 ? 'var(--danger)' : score >= 40 ? 'var(--warn)' : 'var(--success)'}">${score}</span>
+              </div>`).join('')
+          : '<span class="muted">No actors yet</span>';
+
+        const trapped = data.trapped;
+        document.getElementById('trapped').innerHTML = trapped.length
+          ? trapped.map(a => `<span class="badge badge-red">${esc(a)}</span> `).join('')
+          : '<span class="muted">None</span>';
+
+        const fps = data.fingerprints;
+        if (!Object.keys(fps).length) {
+          document.getElementById('fingerprints').innerHTML = '<span class="muted">No fingerprints collected yet</span>';
+        } else {
+          let html = '<table><tr><th>Actor</th><th>IP</th><th>OS</th><th>Browser</th><th>Device</th></tr>';
+          for (const [actor, fp] of Object.entries(fps)) {
+            html += `<tr><td><strong>${esc(actor)}</strong></td><td>${esc(fp.ip)}</td><td>${esc(fp.os)}</td><td>${esc(fp.browser)}</td><td>${esc(fp.device)}</td></tr>`;
+          }
+          document.getElementById('fingerprints').innerHTML = html + '</table>';
+        }
+
+        renderSummaries(data.summaries);
+        renderPentest(data.pentest);
+      } catch (err) { console.error(err); }
+    }
+
+    document.getElementById('reset-btn').addEventListener('click', async () => {
+      if (!confirm('Reset all demo state (scores, traps, logs, scans)?')) return;
+      await fetch('/api/reset', { method: 'POST', headers: { 'X-Doppel': '1' } });
+      refresh();
+    });
+
+    refresh();
+    setInterval(refresh, 2000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Real Dashboard</title>
+  <style>
+    body { font-family: system-ui; background: #0f172a; color: white; padding: 2rem; }
+    .badge { background: #22c55e; color: black; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <h1>Real System Dashboard <span class="badge">AUTHENTICATED</span></h1>
+  <p>Welcome, {{ actor }}</p>
+  <h3>Employee Records (REAL)</h3>
+  <ul>
+    {% for e in employees %}
+      <li>{{ e.name }} – {{ e.role }} – {{ e.salary }}</li>
+    {% endfor %}
+  </ul>
+  <a href="/logout" style="color:#93c5fd">Logout</a>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard</title>
+  <style>
+    body { font-family: system-ui; background: #0f172a; color: white; padding: 2rem; }
+    .badge { background: #ef4444; color: white; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.8rem; }
+    table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+    th, td { border: 1px solid #334155; padding: 0.6rem; text-align: left; }
+  </style>
+</head>
+<body>
+  <h1>Company Dashboard <span class="badge">DECOY</span></h1>
+  <p>{{ message }}</p>
+  <p>Logged in as: <strong>{{ actor }}</strong></p>
+
+  <h3>Employee Records</h3>
+  <table>
+    <tr><th>ID</th><th>Name</th><th>Role</th><th>Salary</th><th>SSN</th></tr>
+    {% for e in employees %}
+      <tr>
+        <td>{{ e.id }}</td>
+        <td>{{ e.name }}</td>
+        <td>{{ e.role }}</td>
+        <td>{{ e.salary }}</td>
+        <td>{{ e.ssn }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+
+  <h3>Recent Payments</h3>
+  <table>
+    <tr><th>Txn</th><th>Customer</th><th>Amount</th><th>Card</th></tr>
+    {% for p in payments %}
+      <tr>
+        <td>{{ p.txn }}</td>
+        <td>{{ p.customer }}</td>
+        <td>{{ p.amount }}</td>
+        <td>{{ p.card }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+
+  <br>
+  <a href="/logout" style="color:#93c5fd">Logout</a>
+</body>
+</html>

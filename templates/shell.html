@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Digital Doppelganger Trap</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; display: flex; flex-direction: column; }
+    nav { display: flex; align-items: center; gap: .5rem; padding: .55rem .9rem; background: #1e293b; border-bottom: 1px solid #334155; }
+    nav .brand { font-weight: 700; margin-right: auto; letter-spacing: .02em; }
+    nav button { background: #0f172a; color: #94a3b8; border: 1px solid #334155; border-radius: 8px; padding: .4rem .9rem; cursor: pointer; font: inherit; font-size: .85rem; }
+    nav button.on { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+    main { flex: 1; display: flex; min-height: 0; }
+    iframe { border: 0; height: 100%; background: #0f172a; }
+    #portal { width: 100%; }
+    #monitor { width: 100%; }
+    main.portal #monitor { display: none; }
+    main.monitor #portal { display: none; }
+    main.split #portal { width: 34%; border-right: 1px solid #334155; }
+    main.split #monitor { width: 66%; }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">🛡️ Digital Doppelganger Trap</span>
+    <button data-v="portal">Company Portal</button>
+    <button data-v="monitor">Defender Monitor</button>
+    <button data-v="split" class="on">Split view</button>
+  </nav>
+  <main class="split" id="main">
+    <iframe id="portal" src="/"></iframe>
+    <iframe id="monitor" src="/monitor"></iframe>
+  </main>
+  <script>
+    document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => {
+      document.getElementById('main').className = b.dataset.v;
+      document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
+    }));
+  </script>
+</body>
+</html>

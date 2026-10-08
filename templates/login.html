@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Company Portal – Login</title>
+  <style>
+    body { font-family: system-ui; background: #0f172a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .card { background: #1e293b; padding: 2rem; border-radius: 12px; width: 320px; }
+    input { width: 100%; padding: 0.6rem; margin: 0.4rem 0 1rem; border-radius: 6px; border: none; }
+    button { width: 100%; padding: 0.7rem; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .error { color: #f87171; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Company Portal</h2>
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <form method="POST">
+      <label>Username</label>
+      <input name="username" placeholder="sara" required>
+      <label>Password</label>
+      <input type="password" name="password" placeholder="password123" required>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+</body>
+</html>
