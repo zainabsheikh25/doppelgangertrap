@@ -1,0 +1,6 @@
+# Lean requirements for deploying the WEB version (Render, etc).
+# Skips pywebview/pyinstaller, which are only needed for the desktop .exe build
+# and need GUI libraries that aren't available on most web hosts.
+Flask>=3.0
+user-agents>=2.2
+gunicorn>=21.2
